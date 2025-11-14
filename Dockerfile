@@ -1,23 +1,20 @@
-FROM php:8.1-fpm
+FROM php:8.2-fpm-alpine
 
 # Set working directory
 WORKDIR /var/www
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
-    libonig-dev \
+    oniguruma-dev \
     libxml2-dev \
     zip \
     unzip \
-    libpq-dev \
-    nginx \
-    supervisor
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+    postgresql-dev \
+    nodejs \
+    npm
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
@@ -25,11 +22,17 @@ RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy existing application directory contents
-COPY . /var/www
+# Create directories and set permissions
+RUN mkdir -p /var/www/storage/app \
+    && mkdir -p /var/www/storage/framework/cache \
+    && mkdir -p /var/www/storage/framework/sessions \
+    && mkdir -p /var/www/storage/framework/testing \
+    && mkdir -p /var/www/storage/framework/views \
+    && mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/bootstrap/cache
 
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+# Copy application files
+COPY . /var/www
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www \
@@ -37,17 +40,16 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/bootstrap/cache
 
 # Install dependencies
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-# Generate application key
+# Build frontend assets
+RUN npm install && npm run build
+
+# Generate application key (will be overridden by Railway)
 RUN php artisan key:generate --force
 
-# Cache configuration
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Expose port
+EXPOSE 8000
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-
-CMD ["php-fpm"]
+# Start command
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
