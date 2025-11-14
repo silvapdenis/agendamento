@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['php82', 'php82Packages.composer', 'nodejs-18_x', 'npm']
+nixPkgs = ['php82', 'php82Packages.composer', 'nodejs_18']
 
 [phases.install]
 cmds = [
@@ -10,7 +10,7 @@ cmds = [
   'cp .env.example .env',
   # Install dependencies without running post-install scripts
   'composer install --no-dev --optimize-autoloader --no-interaction --no-scripts',
-  'npm ci --only=production'
+  'npm install --production'
 ]
 
 [phases.build]
