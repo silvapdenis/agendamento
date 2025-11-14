@@ -24,16 +24,19 @@ sleep 3
 # Basic Laravel setup without problematic commands
 echo "🔧 Setting up Laravel..."
 
-# Generate app key if needed
-if [ -z "$APP_KEY" ]; then
-    echo "🔑 Generating application key..."
+# Generate app key - always ensure it exists
+echo "🔑 Ensuring application key..."
+if grep -q "APP_KEY=$" .env || [ -z "$APP_KEY" ]; then
+    echo "🔑 Generating new application key..."
     php -r "
-    require_once 'vendor/autoload.php';
-    \$app = require_once 'bootstrap/app.php';
     \$key = 'base64:' . base64_encode(random_bytes(32));
-    file_put_contents('.env', str_replace('APP_KEY=', 'APP_KEY=' . \$key, file_get_contents('.env')));
+    \$env = file_get_contents('.env');
+    \$env = preg_replace('/APP_KEY=.*/', 'APP_KEY=' . \$key, \$env);
+    file_put_contents('.env', \$env);
     echo 'Key generated: ' . \$key . PHP_EOL;
     "
+else
+    echo "🔑 Application key already set"
 fi
 
 # Run migrations safely

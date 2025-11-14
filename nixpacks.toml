@@ -26,4 +26,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'bash -c "cp .env.example .env 2>/dev/null || true; php artisan migrate --force 2>/dev/null || true; php -S 0.0.0.0:$PORT server.php"'
+cmd = 'bash start.sh'
