@@ -15,7 +15,7 @@ fi
 
 # Run package discovery (skipped during build)
 echo "📦 Discovering packages..."
-php artisan package:discover --ansi
+php artisan package:discover --ansi || echo "⚠️ Package discovery failed, continuing..."
 
 # Generate application key if not set
 if [ -z "$APP_KEY" ]; then

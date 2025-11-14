@@ -4,8 +4,8 @@
   "description": "Medical appointment system with WhatsApp integration via n8n",
   "main": "public/index.php",
   "scripts": {
-    "build": "composer install --optimize-autoloader --no-dev && php artisan key:generate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache",
-    "start": "php artisan serve --host=0.0.0.0 --port=$PORT",
+    "build": "composer install --optimize-autoloader --no-dev --no-scripts",
+    "start": "bash start.sh",
     "deploy": "railway deploy",
     "migrate": "php artisan migrate --force",
     "seed": "php artisan db:seed --force"
@@ -22,7 +22,7 @@
       "buildCommand": "composer install --optimize-autoloader --no-dev"
     },
     "deploy": {
-      "startCommand": "php artisan serve --host=0.0.0.0 --port=$PORT",
+      "startCommand": "bash start.sh",
       "healthcheckPath": "/api/health"
     }
   }
