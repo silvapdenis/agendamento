@@ -26,4 +26,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'bash start.sh'
+cmd = 'bash -c "cp .env.example .env; php artisan key:generate --force --no-interaction; php artisan migrate --force --no-interaction || true; PORT_NUM=$(echo $PORT | sed \"s/[^0-9]//g\"); php -S 0.0.0.0:${PORT_NUM:-8000} -t public"'
