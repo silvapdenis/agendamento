@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# Railway startup script for Laravel
+# Laravel startup script for production deployment
 echo "🚀 Starting Medical Appointment Bot..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database..."
 sleep 5
+
+# Ensure .env exists (for Docker builds)
+if [ ! -f .env ]; then
+    echo "📄 Creating .env from example..."
+    cp .env.example .env
+fi
 
 # Run package discovery (skipped during build)
 echo "📦 Discovering packages..."

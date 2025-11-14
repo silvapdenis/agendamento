@@ -39,17 +39,21 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Install dependencies
-RUN composer install --optimize-autoloader --no-dev --no-interaction
+# Copy .env.example to .env for build process
+RUN cp .env.example .env
+
+# Install dependencies without running scripts that need .env
+RUN composer install --optimize-autoloader --no-dev --no-interaction --no-scripts
 
 # Build frontend assets
 RUN npm install && npm run build
 
-# Generate application key (will be overridden by Railway)
-RUN php artisan key:generate --force
-
 # Expose port
 EXPOSE 8000
 
+# Copy startup script
+COPY start.sh /var/www/start.sh
+RUN chmod +x /var/www/start.sh
+
 # Start command
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["bash", "/var/www/start.sh"]
