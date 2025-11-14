@@ -21,5 +21,13 @@ cmds = [
   'npm run build'
 ]
 
+[phases.start]
+cmds = [
+  # Generate app key if needed
+  'php -r "if(empty(getenv(\'APP_KEY\'))) { $key = \'base64:\' . base64_encode(random_bytes(32)); file_put_contents(\'.env\', str_replace(\'APP_KEY=\', \'APP_KEY=\' . $key, file_get_contents(\'.env\'))); }"',
+  # Run migrations
+  'php artisan migrate --force || true'
+]
+
 [start]
-cmd = 'bash start.sh'
+cmd = 'php -S 0.0.0.0:$PORT server.php'

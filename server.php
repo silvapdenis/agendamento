@@ -1,19 +1,17 @@
 <?php
 /**
- * Simple PHP server entry point for Railway deployment
- * This avoids Laravel's ServeCommand issues
+ * Ultra-simple PHP router for Railway
  */
 
-// Set the public directory as the document root
-$publicPath = __DIR__ . '/public';
+$uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($uri, PHP_URL_PATH);
 
-// Get the requested URI
-$uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-
-// If it's a file in public directory, serve it directly
-if ($uri !== '/' && file_exists($publicPath . $uri)) {
-    return false; // Let PHP's built-in server handle it
+// Serve static files directly
+if ($path !== '/' && file_exists(__DIR__ . '/public' . $path)) {
+    return false;
 }
 
-// Otherwise, route through Laravel's index.php
-require_once $publicPath . '/index.php';
+// Route everything else to Laravel
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+chdir(__DIR__ . '/public');
+require __DIR__ . '/public/index.php';
