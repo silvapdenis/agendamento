@@ -6,6 +6,8 @@ cmds = [
   # Create storage directories
   'mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache',
   'chmod -R 755 storage bootstrap/cache',
+  # Create .env from example
+  'cp .env.example .env',
   # Install dependencies
   'composer install --no-dev --optimize-autoloader --no-interaction',
   'npm ci --only=production'
@@ -15,15 +17,9 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
-  # Generate key if not set
-  'php artisan key:generate --force',
-  # Cache config
-  'php artisan config:cache',
-  'php artisan route:cache', 
-  'php artisan view:cache',
-  # Build assets
+  # Build assets first
   'npm run build'
 ]
 
 [start]
-cmd = 'php artisan serve --host=0.0.0.0 --port=$PORT'
+cmd = 'bash start.sh'
