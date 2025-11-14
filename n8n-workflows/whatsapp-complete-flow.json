@@ -1,0 +1,549 @@
+{
+  "name": "WhatsApp Medical Bot - Complete Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-medical",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract WhatsApp message data\nconst payload = $input.all()[0].json;\n\n// Validate webhook structure\nif (!payload.entry || !payload.entry[0] || !payload.entry[0].changes || !payload.entry[0].changes[0]) {\n  return [{ error: 'Invalid webhook payload' }];\n}\n\nconst change = payload.entry[0].changes[0];\nconst value = change.value;\n\n// Check if there are messages\nif (!value.messages || value.messages.length === 0) {\n  return [{ error: 'No messages found' }];\n}\n\nconst message = value.messages[0];\nconst contact = value.contacts ? value.contacts[0] : null;\n\n// Extract relevant data\nreturn [{\n  phoneNumber: message.from,\n  messageText: message.text ? message.text.body : '',\n  messageType: message.type,\n  messageId: message.id,\n  timestamp: message.timestamp,\n  contactName: contact ? contact.profile.name : '',\n  isTextMessage: message.type === 'text'\n}];"
+      },
+      "id": "extract-data",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isTextMessage }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-text",
+      "name": "Is Text Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/n8n/conversation-state",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.phoneNumber }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-state",
+      "name": "Get Conversation State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "id": "route-by-state",
+      "name": "Route by State", 
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1120, 300],
+      "parameters": {
+        "options": {
+          "fallbackOutput": 4
+        },
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "initial",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "initial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "waiting_specialty",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "specialty"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "waiting_doctor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "doctor"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "waiting_clinic",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "clinic"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle initial state - detect appointment intent\nconst messageText = $('Extract Message Data').first().json.messageText.toLowerCase();\nconst appointmentKeywords = ['agendar', 'consulta', 'médico', 'doutor', 'horário', 'marcar'];\n\nconst isAppointmentRequest = appointmentKeywords.some(keyword => \n  messageText.includes(keyword)\n);\n\nif (isAppointmentRequest) {\n  return [{ action: 'start_appointment' }];\n} else {\n  return [{ action: 'show_welcome' }];\n}"
+      },
+      "id": "handle-initial",
+      "name": "Handle Initial State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "start_appointment",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-appointment-intent",
+      "name": "Start Appointment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 100]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/n8n/specialties",
+        "options": {}
+      },
+      "id": "get-specialties",
+      "name": "Get Specialties",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 60]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format welcome message\nconst phoneNumber = $('Extract Message Data').first().json.phoneNumber;\n\nconst message = \"👋 Olá! Bem-vindo ao sistema de agendamento!\\n\\n\" +\n               \"🏥 Eu posso ajudá-lo a:\\n\" +\n               \"• Agendar consultas médicas\\n\" +\n               \"• Verificar horários disponíveis\\n\" +\n               \"• Confirmar agendamentos\\n\\n\" +\n               \"Para começar, digite:\\n\" +\n               \"*agendar consulta*\";\n\nreturn [{\n  phoneNumber,\n  message,\n  nextState: 'initial',\n  context: {}\n}];"
+      },
+      "id": "format-welcome",
+      "name": "Format Welcome",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 140]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format specialties message\nconst specialties = $json.data;\nconst phoneNumber = $('Extract Message Data').first().json.phoneNumber;\n\nlet message = \"🏥 *Agendamento de Consulta*\\n\\n\";\nmessage += \"Para agendar sua consulta, preciso de algumas informações.\\n\\n\";\nmessage += \"*Especialidades disponíveis:*\\n\";\n\nspecialties.forEach((specialty, index) => {\n  message += `${index + 1}. ${specialty.name}\\n`;\n});\n\nmessage += \"\\n📝 Digite o *número* da especialidade desejada:\";\n\nreturn [{\n  phoneNumber,\n  message,\n  nextState: 'waiting_specialty',\n  context: { specialties }\n}];"
+      },
+      "id": "format-specialties",
+      "name": "Format Specialties",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 60]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle specialty selection\nconst messageText = $('Extract Message Data').first().json.messageText;\nconst phoneNumber = $('Extract Message Data').first().json.phoneNumber;\nconst context = $('Get Conversation State').first().json.context;\nconst specialties = context.specialties;\n\nconst specialtyIndex = parseInt(messageText) - 1;\n\nif (isNaN(specialtyIndex) || !specialties || !specialties[specialtyIndex]) {\n  return [{\n    phoneNumber,\n    message: \"❌ Opção inválida. Por favor, digite o número de uma especialidade válida.\",\n    nextState: 'waiting_specialty',\n    context: context,\n    isError: true\n  }];\n}\n\nconst selectedSpecialty = specialties[specialtyIndex];\n\nreturn [{\n  phoneNumber,\n  selectedSpecialty,\n  specialtyId: selectedSpecialty.id,\n  context: { ...context, selectedSpecialty }\n}];"
+      },
+      "id": "handle-specialty",
+      "name": "Handle Specialty Selection",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isError }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ]
+        }
+      },
+      "id": "check-specialty-error",
+      "name": "Has Error?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "url": "=http://localhost:8000/api/n8n/specialties/{{ $json.specialtyId }}/doctors",
+        "options": {}
+      },
+      "id": "get-doctors",
+      "name": "Get Doctors",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/n8n/send-whatsapp",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phoneNumber }}\",\n  \"message\": \"{{ $json.message }}\"\n}",
+        "options": {}
+      },
+      "id": "send-message",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/n8n/conversation-state",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phoneNumber }}\",\n  \"state\": \"{{ $json.nextState }}\",\n  \"context\": {{ JSON.stringify($json.context) }}\n}",
+        "options": {}
+      },
+      "id": "update-state",
+      "name": "Update State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2440, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"success\", \"processed\": true }"
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2660, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"error\", \"message\": \"Only text messages supported\" }"
+      },
+      "id": "respond-not-text",
+      "name": "Respond Not Text",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 600]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Is Text Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Text Message?": {
+      "main": [
+        [
+          {
+            "node": "Get Conversation State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Not Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Conversation State": {
+      "main": [
+        [
+          {
+            "node": "Route by State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by State": {
+      "main": [
+        [
+          {
+            "node": "Handle Initial State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Specialty Selection",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        []
+      ]
+    },
+    "Handle Initial State": {
+      "main": [
+        [
+          {
+            "node": "Start Appointment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Appointment?": {
+      "main": [
+        [
+          {
+            "node": "Get Specialties",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Specialties": {
+      "main": [
+        [
+          {
+            "node": "Format Specialties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Welcome": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Specialties": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Specialty Selection": {
+      "main": [
+        [
+          {
+            "node": "Has Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Error?": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Doctors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Doctors": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Update State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["whatsapp", "medical", "appointments"],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-16T18:00:00.000Z",
+  "versionId": "2"
+}

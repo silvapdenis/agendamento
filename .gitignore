@@ -1,0 +1,140 @@
+# Laravel
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+
+# Laravel specific
+bootstrap/cache/*
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+storage/logs/*
+!storage/app/.gitkeep
+!storage/framework/.gitkeep
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/testing/.gitkeep
+!storage/framework/views/.gitkeep
+!storage/logs/.gitkeep
+
+# PHP
+*.log
+*.cache
+composer.phar
+php_errors.log
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# n8n
+n8n_data/
+.n8n/
+n8n-workflows/*.json.backup
+n8n-workflows/.credentials/
+
+# Environment files
+.env*
+!.env.example
+.environment
+
+# IDE and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+/public/build
+/public/mix-manifest.json
+/public/css/app.css
+/public/js/app.js
+
+# SSL certificates
+*.pem
+*.crt
+*.key
+*.csr
+ssl/
+certs/
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Production deploy files (sensitive)
+.env.production
+docker-compose.prod.override.yml
+
+# WhatsApp credentials
+whatsapp_credentials.json
+meta_business_token.txt
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+.phpunit.result.cache
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+.temp/

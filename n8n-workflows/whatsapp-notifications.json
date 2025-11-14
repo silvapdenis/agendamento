@@ -1,0 +1,240 @@
+{
+  "name": "Notificação WhatsApp - Agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "appointment-notification",
+        "options": {}
+      },
+      "id": "8b344083-b0b4-4b91-9c4c-7c9b8f7d5e3a",
+      "name": "Webhook - Novo Agendamento",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "appointment-notification"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"notification_type\"]}}",
+              "operation": "equal",
+              "value2": "appointment_confirmed"
+            }
+          ]
+        }
+      },
+      "id": "7c2a1b9f-4d5e-6f7g-8h9i-0j1k2l3m4n5o",
+      "name": "É Confirmação?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$json[\"patient_phone\"]}}",
+        "text": "🏥 *Consulta Confirmada!*\n\n📅 Data: {{$json[\"appointment_date\"]}}\n👨‍⚕️ Médico: Dr(a). {{$json[\"doctor_name\"]}}\n🏢 Clínica: {{$json[\"clinic_name\"]}}\n📍 Endereço: {{$json[\"clinic_address\"]}}\n\n✅ Sua consulta foi confirmada com sucesso!\n\n📋 Lembre-se de chegar 15 minutos antes do horário marcado.\n\n❓ Dúvidas? Responda esta mensagem.",
+        "additionalFields": {}
+      },
+      "id": "9a5b6c7d-8e9f-0g1h-2i3j-4k5l6m7n8o9p",
+      "name": "Enviar WhatsApp - Confirmação",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"notification_type\"]}}",
+              "operation": "equal",
+              "value2": "appointment_reminder"
+            }
+          ]
+        }
+      },
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+      "name": "É Lembrete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$json[\"patient_phone\"]}}",
+        "text": "⏰ *Lembrete de Consulta*\n\n📅 Data: {{$json[\"appointment_date\"]}}\n👨‍⚕️ Médico: Dr(a). {{$json[\"doctor_name\"]}}\n🏢 Clínica: {{$json[\"clinic_name\"]}}\n\n⚠️ Sua consulta é amanhã!\n\n📋 Prepare seus documentos e exames.\n\n🚫 Precisa cancelar? Entre em contato conosco.",
+        "additionalFields": {}
+      },
+      "id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+      "name": "Enviar WhatsApp - Lembrete",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"notification_type\"]}}",
+              "operation": "equal",
+              "value2": "appointment_cancelled"
+            }
+          ]
+        }
+      },
+      "id": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+      "name": "É Cancelamento?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        460,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$json[\"patient_phone\"]}}",
+        "text": "❌ *Consulta Cancelada*\n\n📅 Data: {{$json[\"appointment_date\"]}}\n👨‍⚕️ Médico: Dr(a). {{$json[\"doctor_name\"]}}\n\n😔 Sua consulta foi cancelada.\n\n💡 Motivo: {{$json[\"cancellation_reason\"]}}\n\n🔄 Reagende quando desejar através do nosso sistema.\n\n📞 Dúvidas? Entre em contato conosco.",
+        "additionalFields": {}
+      },
+      "id": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+      "name": "Enviar WhatsApp - Cancelamento",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        680,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "url": "={{$json[\"webhook_response_url\"]}}",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\n  \"status\": \"sent\",\n  \"notification_id\": \"{{$json[\"notification_id\"]}}\",\n  \"sent_at\": \"{{$now}}\",\n  \"channel\": \"whatsapp\"\n}"
+      },
+      "id": "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+      "name": "Confirmar Envio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Novo Agendamento": {
+      "main": [
+        [
+          {
+            "node": "É Confirmação?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "É Cancelamento?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Confirmação?": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp - Confirmação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É Lembrete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Lembrete?": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp - Lembrete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Cancelamento?": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp - Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp - Confirmação": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp - Lembrete": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp - Cancelamento": {
+      "main": [
+        [
+          {
+            "node": "Confirmar Envio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
