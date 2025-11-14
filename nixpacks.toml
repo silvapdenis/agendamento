@@ -8,8 +8,8 @@ cmds = [
   'chmod -R 755 storage bootstrap/cache',
   # Create .env from example
   'cp .env.example .env',
-  # Install dependencies
-  'composer install --no-dev --optimize-autoloader --no-interaction',
+  # Install dependencies without running post-install scripts
+  'composer install --no-dev --optimize-autoloader --no-interaction --no-scripts',
   'npm ci --only=production'
 ]
 
