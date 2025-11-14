@@ -47,5 +47,10 @@ chmod -R 755 storage bootstrap/cache
 
 echo "✅ Application ready!"
 
-# Start the web server
-exec php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+# Set default port if not provided
+PORT=${PORT:-8000}
+
+echo "🌐 Starting server on port $PORT..."
+
+# Use PHP built-in server (more reliable than artisan serve in containers)
+exec php -S 0.0.0.0:$PORT -t public
