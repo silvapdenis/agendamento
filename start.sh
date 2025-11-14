@@ -12,6 +12,11 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
+# Enable debug for troubleshooting
+echo "🐛 Enabling Laravel debug mode..."
+sed -i 's/APP_DEBUG=false/APP_DEBUG=true/g' .env
+sed -i 's/LOG_LEVEL=error/LOG_LEVEL=debug/g' .env
+
 # Wait for database
 echo "⏳ Waiting for database..."
 sleep 3
