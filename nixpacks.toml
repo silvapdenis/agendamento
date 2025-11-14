@@ -10,15 +10,19 @@ cmds = [
   'cp .env.example .env',
   # Install dependencies without running post-install scripts
   'composer install --no-dev --optimize-autoloader --no-interaction --no-scripts',
-  'npm install --production'
+  'npm install'
 ]
 
 [phases.build]
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
-  # Build assets first
-  'npm run build'
+  # Install dev dependencies needed for build
+  'npm install --include=dev',
+  # Build assets
+  'npm run build',
+  # Clean up dev dependencies after build
+  'npm prune --production'
 ]
 
 [start]
