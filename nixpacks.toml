@@ -26,4 +26,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'bash -c "cp .env.example .env 2>/dev/null || true; sed -i \"s/APP_KEY=.*/APP_KEY=$APP_KEY/g\" .env; php artisan config:clear; php artisan migrate --force --no-interaction 2>/dev/null || true; PORT_NUM=$(echo $PORT | sed \"s/[^0-9]//g\"); php -S 0.0.0.0:${PORT_NUM:-8000} -t public"'
+cmd = 'bash -c "cp .env.example .env 2>/dev/null || true; sed -i \"s/APP_KEY=.*/APP_KEY=$APP_KEY/g\" .env; php artisan config:clear; php artisan migrate --force --no-interaction 2>/dev/null || true; export PORT=${PORT:-8000}; echo \"Starting server on port $PORT\"; php -S 0.0.0.0:$PORT -t public"'
