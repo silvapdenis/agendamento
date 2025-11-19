@@ -17,6 +17,9 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
+  # Setup basic .env with APP_KEY from environment
+  'echo "APP_KEY=${APP_KEY}" > .env',
+  'cat .env.example | grep -v "^APP_KEY=" >> .env',
   # Install dev dependencies needed for build
   'npm install --include=dev',
   # Build assets
@@ -26,4 +29,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'chmod +x railway-start.sh && bash railway-start.sh'
+cmd = 'chmod +x simple-start.sh && bash simple-start.sh'
