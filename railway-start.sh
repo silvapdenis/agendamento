@@ -5,8 +5,17 @@ set -e
 
 echo "🚀 Initializing Laravel Application..."
 
+# Add common paths for Railway environment
+export PATH="/opt/php/bin:/usr/bin:/bin:/usr/local/bin:$PATH"
+
 # Set default port
 export PORT=${PORT:-8000}
+
+# Debug environment
+echo "📊 Environment Debug:"
+echo "PHP location: $(which php || echo 'PHP not found')"
+echo "APP_KEY exists: $( [ -n "$APP_KEY" ] && echo 'YES' || echo 'NO' )"
+echo "APP_KEY length: ${#APP_KEY}"
 
 # Create .env file with correct APP_KEY
 echo "📄 Setting up environment file..."
@@ -15,7 +24,16 @@ if [ -n "$APP_KEY" ]; then
     echo "✅ APP_KEY set from Railway environment"
 else
     echo "⚠️ No APP_KEY found in environment variables"
-    cp .env.example .env
+    echo "🔧 Generating new APP_KEY..."
+    # Try to generate a new key using PHP if available
+    if command -v php > /dev/null 2>&1; then
+        NEW_KEY="base64:$(openssl rand -base64 32)"
+        echo "APP_KEY=$NEW_KEY" > .env
+        echo "✅ Generated new APP_KEY"
+    else
+        echo "❌ PHP not available, copying .env.example"
+        cp .env.example .env
+    fi
 fi
 
 # Append other environment variables from .env.example (excluding APP_KEY)
@@ -40,20 +58,24 @@ WHATSAPP_VERIFY_TOKEN=medico_bot_2025
 N8N_WEBHOOK_URL=\${N8N_WEBHOOK_URL:-http://localhost:5678/webhook/appointment-notification}
 EOF
 
-# Clear all Laravel caches
-echo "🧹 Clearing Laravel caches..."
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
+# Clear all Laravel caches (only if PHP is available)
+if command -v php > /dev/null 2>&1; then
+    echo "🧹 Clearing Laravel caches..."
+    php artisan config:clear || echo "⚠️ Config clear failed"
+    php artisan cache:clear || echo "⚠️ Cache clear failed"
+    php artisan route:clear || echo "⚠️ Route clear failed"
+    php artisan view:clear || echo "⚠️ View clear failed"
 
-# Run database migrations
-echo "🗄️ Running database migrations..."
-php artisan migrate --force --no-interaction 2>/dev/null || echo "⚠️ Migration failed, continuing..."
+    # Run database migrations
+    echo "🗄️ Running database migrations..."
+    php artisan migrate --force --no-interaction 2>/dev/null || echo "⚠️ Migration failed, continuing..."
 
-# Optimize Laravel
-echo "⚡ Optimizing Laravel..."
-php artisan config:cache
+    # Optimize Laravel
+    echo "⚡ Optimizing Laravel..."
+    php artisan config:cache || echo "⚠️ Config cache failed"
+else
+    echo "⚠️ PHP not available, skipping Laravel commands"
+fi
 php artisan route:cache
 
 # Verify APP_KEY
