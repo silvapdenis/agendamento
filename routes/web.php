@@ -13,16 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Medical Appointment Bot API is running!',
-        'timestamp' => now(),
-        'debug' => config('app.debug'),
-        'env' => config('app.env'),
-        'laravel_version' => app()->version()
-    ]);
-});
+// Route::get('/', function () {
+//     return response()->json([
+//         'status' => 'success',
+//         'message' => 'Medical Appointment Bot API is running!',
+//         'timestamp' => now(),
+//         'debug' => config('app.debug'),
+//         'env' => config('app.env'),
+//         'laravel_version' => app()->version()
+//     ]);
+// });
 
 Route::get('/debug', function () {
     return response()->json([
