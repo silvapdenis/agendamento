@@ -1,6 +1,6 @@
 [phases.setup]
 nixPkgs = ['php82', 'php82Packages.composer', 'nodejs_18']
-aptPkgs = ['php8.2-pgsql', 'php8.2-pdo-pgsql']
+aptPkgs = ['php-pgsql']
 
 
 
