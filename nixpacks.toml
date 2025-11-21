@@ -1,6 +1,9 @@
 [phases.setup]
 nixPkgs = ['php82', 'php82Packages.composer', 'nodejs_18']
 
+[variables]
+PHP_PATH = '/nix/store/*/bin/php'
+
 [phases.install]
 cmds = [
   # Create storage directories
@@ -17,9 +20,6 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
-  # Setup basic .env with APP_KEY from environment
-  'echo "APP_KEY=${APP_KEY}" > .env',
-  'cat .env.example | grep -v "^APP_KEY=" >> .env',
   # Install dev dependencies needed for build
   'npm install --include=dev',
   # Build assets
@@ -29,4 +29,25 @@ cmds = [
 ]
 
 [start]
-cmd = 'chmod +x simple-start.sh && bash simple-start.sh'
+cmd = '''
+# Setup environment variables
+echo "APP_KEY=$APP_KEY" > .env
+echo "APP_ENV=production" >> .env
+echo "APP_DEBUG=true" >> .env
+echo "APP_URL=$RAILWAY_STATIC_URL" >> .env
+echo "DB_CONNECTION=pgsql" >> .env
+echo "DB_HOST=$PGHOST" >> .env
+echo "DB_PORT=$PGPORT" >> .env
+echo "DB_DATABASE=$PGDATABASE" >> .env
+echo "DB_USERNAME=$PGUSER" >> .env
+echo "DB_PASSWORD=$PGPASSWORD" >> .env
+echo "WHATSAPP_VERIFY_TOKEN=medico_bot_2025" >> .env
+
+# Run Laravel setup
+php artisan config:cache 2>/dev/null || echo "Config cache failed"
+php artisan migrate --force --no-interaction 2>/dev/null || echo "Migration failed"
+php artisan route:cache 2>/dev/null || echo "Route cache failed"
+
+# Start server
+php -S 0.0.0.0:$PORT -t public
+'''
