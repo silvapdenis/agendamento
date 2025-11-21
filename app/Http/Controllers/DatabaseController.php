@@ -100,4 +100,30 @@ class DatabaseController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Import data from MySQL dump
+     */
+    public function importData()
+    {
+        try {
+            // Executar nossa migração específica de importação
+            Artisan::call('migrate', [
+                '--path' => 'database/migrations/2024_11_21_000001_import_mysql_data.php',
+                '--force' => true
+            ]);
+            $output = Artisan::output();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Dados importados com sucesso do dump MySQL',
+                'output' => $output
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao importar dados: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
