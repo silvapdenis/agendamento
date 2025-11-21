@@ -17,16 +17,14 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
-  # Create proper .env file
-  'cp .env.example .env',
+  # Use production environment file
+  'cp .env.production .env',
   # Install dev dependencies needed for build
   'npm install --include=dev',
   # Build assets
   'npm run build',
   # Clean up dev dependencies after build
-  'npm prune --production',
-  # Generate Laravel key if not provided
-  'php artisan key:generate --force || echo "Key generation failed"'
+  'npm prune --production'
 ]
 
 [start]
