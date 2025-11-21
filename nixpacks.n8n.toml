@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['nodejs_18', 'mysql80']
+nixPkgs = ['nodejs_18']
 
 [phases.install]
 cmds = [
@@ -8,35 +8,39 @@ cmds = [
 
 [phases.build]
 cmds = [
+  'mkdir -p ~/.n8n',
   'echo "N8N build phase completed"'
 ]
 
 [start]
-cmd = 'n8n start'
+cmd = 'n8n start --host=0.0.0.0 --port=$PORT'
 
 [variables]
+# Basic Configuration
 N8N_HOST = '0.0.0.0'
 N8N_PORT = '$PORT'
 N8N_PROTOCOL = 'https'
 N8N_EDITOR_BASE_URL = 'https://$RAILWAY_STATIC_URL'
-N8N_WEBHOOK_URL = 'https://$RAILWAY_STATIC_URL/webhook'
+WEBHOOK_URL = 'https://$RAILWAY_STATIC_URL/webhook'
 
-# Database Configuration (will be set from Railway MySQL service)
-DB_TYPE = 'mysqldb'
-DB_MYSQLDB_HOST = '$MYSQLHOST'
-DB_MYSQLDB_PORT = '$MYSQLPORT'
-DB_MYSQLDB_DATABASE = '$MYSQLDATABASE'
-DB_MYSQLDB_USER = '$MYSQLUSER' 
-DB_MYSQLDB_PASSWORD = '$MYSQLPASSWORD'
+# Disable database for now (use file system)
+# Database will be configured later
+N8N_USER_FOLDER = '/tmp/.n8n'
 
 # Security
 N8N_BASIC_AUTH_ACTIVE = 'true'
 N8N_BASIC_AUTH_USER = 'admin'
 N8N_BASIC_AUTH_PASSWORD = 'medico_bot_2025'
 
+# Disable encryption for Railway
+N8N_ENCRYPTION_KEY = 'n8n-encryption-key-medico-bot-2025'
+
 # Timezone
 GENERIC_TIMEZONE = 'America/Sao_Paulo'
 TZ = 'America/Sao_Paulo'
+
+# Logging
+N8N_LOG_LEVEL = 'debug'
 
 # Laravel Integration
 LARAVEL_API_URL = 'https://web-production-317fb.up.railway.app'
