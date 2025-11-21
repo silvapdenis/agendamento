@@ -45,29 +45,72 @@ class DatabaseController extends Controller
                 'DB_PORT' => env('DB_PORT'),
                 'DB_DATABASE' => env('DB_DATABASE'),
                 'DB_USERNAME' => env('DB_USERNAME'),
-                'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET'
+                'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET',
+                'MYSQL_URL' => env('MYSQL_URL') ? 'SET' : 'NOT SET'
             ];
             
-            // Testar conexão MySQL
-            $pdo = DB::connection()->getPdo();
+            // Tentar conexão direta com PDO primeiro
+            $dsn = 'mysql:host=' . env('DB_HOST') . ';port=' . env('DB_PORT') . ';dbname=' . env('DB_DATABASE') . ';charset=utf8mb4';
+            $pdo = new \PDO($dsn, env('DB_USERNAME'), env('DB_PASSWORD'), [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            ]);
             
-            // Verificar tabelas MySQL
-            $tables = DB::select("SHOW TABLES");
+            // Testar query simples com PDO direto
+            $stmt = $pdo->query('SELECT 1 as test_connection, VERSION() as mysql_version');
+            $result = $stmt->fetch();
             
-            // Testar query simples
-            $result = DB::select('SELECT 1 as test_connection');
+            // Agora testar com Eloquent
+            DB::connection()->getPdo();
+            $eloquentTest = DB::select('SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = ?', [env('DB_DATABASE')]);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Conexão MySQL funcionando!',
                 'env_vars' => $envVars,
-                'pdo_driver' => $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME),
+                'pdo_direct' => [
+                    'test_connection' => $result['test_connection'],
+                    'mysql_version' => $result['mysql_version']
+                ],
+                'eloquent_test' => $eloquentTest[0]->count ?? 0,
                 'database' => env('DB_DATABASE'),
-                'host' => env('DB_HOST'),
-                'tables_count' => count($tables),
-                'test_query' => $result[0]->test_connection ?? 'failed'
+                'host' => env('DB_HOST')
             ]);
         } catch (Exception $e) {
+            // Tentar conexão via MYSQL_URL se a conexão normal falhar
+            $mysqlUrl = env('MYSQL_URL');
+            if ($mysqlUrl) {
+                try {
+                    $pdo = new \PDO($mysqlUrl, null, null, [
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    ]);
+                    $stmt = $pdo->query('SELECT 1 as test_connection');
+                    $result = $stmt->fetch();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Conexão MySQL via URL funcionando!',
+                        'connection_method' => 'MYSQL_URL',
+                        'test_result' => $result['test_connection']
+                    ]);
+                } catch (Exception $urlError) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erro na conexão MySQL: ' . $e->getMessage(),
+                        'mysql_url_error' => $urlError->getMessage(),
+                        'env_vars' => [
+                            'DB_CONNECTION' => env('DB_CONNECTION'),
+                            'DB_HOST' => env('DB_HOST'),
+                            'DB_PORT' => env('DB_PORT'),
+                            'DB_DATABASE' => env('DB_DATABASE'),
+                            'DB_USERNAME' => env('DB_USERNAME'),
+                            'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET',
+                            'MYSQL_URL' => env('MYSQL_URL') ? 'SET' : 'NOT SET'
+                        ]
+                    ], 500);
+                }
+            }
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Erro na conexão MySQL: ' . $e->getMessage(),
@@ -77,7 +120,8 @@ class DatabaseController extends Controller
                     'DB_PORT' => env('DB_PORT'),
                     'DB_DATABASE' => env('DB_DATABASE'),
                     'DB_USERNAME' => env('DB_USERNAME'),
-                    'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET'
+                    'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET',
+                    'MYSQL_URL' => env('MYSQL_URL') ? 'SET' : 'NOT SET'
                 ]
             ], 500);
         }
