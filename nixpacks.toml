@@ -1,6 +1,6 @@
 [phases.setup]
 nixPkgs = ['php82', 'php82Packages.composer', 'nodejs_18']
-aptPkgs = ['php-pgsql']
+aptPkgs = ['php-mysql']
 
 
 
@@ -36,5 +36,5 @@ APP_KEY = '$APP_KEY'
 APP_ENV = 'production'  
 APP_DEBUG = 'true'
 APP_URL = 'https://$RAILWAY_STATIC_URL'
-DB_CONNECTION = 'pgsql'
+DB_CONNECTION = 'mysql'
 WHATSAPP_VERIFY_TOKEN = 'medico_bot_2025'
