@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      # Basic Configuration
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_EDITOR_BASE_URL=${N8N_EDITOR_BASE_URL}
+      
+      # Database Configuration (connect to Railway MySQL)
+      - DB_TYPE=mysqldb
+      - DB_MYSQLDB_HOST=${DB_HOST}
+      - DB_MYSQLDB_PORT=${DB_PORT}
+      - DB_MYSQLDB_DATABASE=${DB_DATABASE}
+      - DB_MYSQLDB_USER=${DB_USERNAME}
+      - DB_MYSQLDB_PASSWORD=${DB_PASSWORD}
+      
+      # Security
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      
+      # Webhook Configuration
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      
+      # WhatsApp Business API Configuration
+      - WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}
+      - WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID}
+      - WHATSAPP_BUSINESS_ACCOUNT_ID=${WHATSAPP_BUSINESS_ACCOUNT_ID}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      
+      # Laravel API Configuration
+      - LARAVEL_API_URL=${LARAVEL_API_URL}
+      - LARAVEL_API_TOKEN=${LARAVEL_API_TOKEN}
+      
+      # Timezone
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - TZ=America/Sao_Paulo
+      
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - n8n_network
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n_network:
+    driver: bridge

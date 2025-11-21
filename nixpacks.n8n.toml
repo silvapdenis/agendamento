@@ -1,0 +1,43 @@
+[phases.setup]
+nixPkgs = ['nodejs_18', 'mysql80']
+
+[phases.install]
+cmds = [
+  'npm install -g n8n@latest'
+]
+
+[phases.build]
+cmds = [
+  'echo "N8N build phase completed"'
+]
+
+[start]
+cmd = 'n8n start'
+
+[variables]
+N8N_HOST = '0.0.0.0'
+N8N_PORT = '$PORT'
+N8N_PROTOCOL = 'https'
+N8N_EDITOR_BASE_URL = 'https://$RAILWAY_STATIC_URL'
+N8N_WEBHOOK_URL = 'https://$RAILWAY_STATIC_URL/webhook'
+
+# Database Configuration (will be set from Railway MySQL service)
+DB_TYPE = 'mysqldb'
+DB_MYSQLDB_HOST = '$MYSQLHOST'
+DB_MYSQLDB_PORT = '$MYSQLPORT'
+DB_MYSQLDB_DATABASE = '$MYSQLDATABASE'
+DB_MYSQLDB_USER = '$MYSQLUSER' 
+DB_MYSQLDB_PASSWORD = '$MYSQLPASSWORD'
+
+# Security
+N8N_BASIC_AUTH_ACTIVE = 'true'
+N8N_BASIC_AUTH_USER = 'admin'
+N8N_BASIC_AUTH_PASSWORD = 'medico_bot_2025'
+
+# Timezone
+GENERIC_TIMEZONE = 'America/Sao_Paulo'
+TZ = 'America/Sao_Paulo'
+
+# Laravel Integration
+LARAVEL_API_URL = 'https://web-production-317fb.up.railway.app'
+WHATSAPP_VERIFY_TOKEN = 'medico_bot_2025'
