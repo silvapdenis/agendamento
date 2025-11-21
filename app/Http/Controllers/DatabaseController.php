@@ -158,6 +158,66 @@ class DatabaseController extends Controller
     }
 
     /**
+     * Check migration status
+     */
+    public function status()
+    {
+        try {
+            // Verificar se tabela personal_access_tokens existe
+            $tables = DB::select("SHOW TABLES");
+            $tableNames = array_map(function($table) {
+                return reset($table);
+            }, $tables);
+            
+            $hasPersonalAccessTokens = in_array('personal_access_tokens', $tableNames);
+            
+            // Verificar status das migrações
+            $migrations = DB::table('migrations')->get();
+            
+            return response()->json([
+                'success' => true,
+                'tables' => $tableNames,
+                'tables_count' => count($tableNames),
+                'has_personal_access_tokens' => $hasPersonalAccessTokens,
+                'migrations' => $migrations->pluck('migration')->toArray(),
+                'migrations_count' => $migrations->count()
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao verificar status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Force create personal_access_tokens table
+     */
+    public function createSanctumTable()
+    {
+        try {
+            // Executar apenas a migração do Sanctum
+            Artisan::call('migrate', [
+                '--path' => 'database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php',
+                '--force' => true
+            ]);
+            
+            $output = Artisan::output();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Tabela personal_access_tokens criada',
+                'output' => $output
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao criar tabela Sanctum: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Run seeders
      */
     public function seed()

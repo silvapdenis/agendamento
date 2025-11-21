@@ -23,6 +23,8 @@ Route::get('/debug', [HomeController::class, 'debug']);
 // Database management endpoints (temporary for setup)
 Route::get('/db/test', [App\Http\Controllers\DatabaseController::class, 'test']);
 Route::get('/db/migrate', [App\Http\Controllers\DatabaseController::class, 'migrate']);
+Route::get('/db/status', [App\Http\Controllers\DatabaseController::class, 'status']);
+Route::get('/db/sanctum', [App\Http\Controllers\DatabaseController::class, 'createSanctumTable']);
 Route::get('/db/seed', [App\Http\Controllers\DatabaseController::class, 'seed']);
 Route::get('/db/import', [App\Http\Controllers\DatabaseController::class, 'importData']);
 
