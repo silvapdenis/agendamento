@@ -15,19 +15,49 @@ class DatabaseController extends Controller
     public function migrate()
     {
         try {
+            // Testar conexão primeiro
+            DB::connection()->getPdo();
+            
             // Executar migrações
             Artisan::call('migrate', ['--force' => true]);
             $output = Artisan::output();
             
+            // Verificar se há tabelas criadas
+            $tables = DB::select("SHOW TABLES");
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Migrações executadas com sucesso',
-                'output' => $output
+                'output' => $output,
+                'tables_created' => count($tables),
+                'connection_ok' => true
             ]);
         } catch (Exception $e) {
+            // Capturar informações detalhadas do erro
+            $errorInfo = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode()
+            ];
+            
+            // Testar se é problema de conexão
+            try {
+                DB::connection()->getPdo();
+                $connectionStatus = 'OK';
+            } catch (Exception $connError) {
+                $connectionStatus = 'FAILED: ' . $connError->getMessage();
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao executar migrações: ' . $e->getMessage()
+                'message' => 'Erro ao executar migrações: ' . $e->getMessage(),
+                'error_details' => $errorInfo,
+                'connection_status' => $connectionStatus,
+                'env_check' => [
+                    'DB_HOST' => env('DB_HOST'),
+                    'DB_DATABASE' => env('DB_DATABASE')
+                ]
             ], 500);
         }
     }
