@@ -15,17 +15,21 @@ return new class extends Migration
         
         // Dados das especialidades
         $specialties = [
-            ['id' => 1, 'name' => 'Cardiologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças cardiovasculares'],
-            ['id' => 2, 'name' => 'Dermatologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças de pele'],
-            ['id' => 3, 'name' => 'Neurologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças do sistema nervoso'],
-            ['id' => 4, 'name' => 'Pediatria', 'description' => 'Especialidade médica que se dedica ao cuidado da saúde de crianças e adolescentes'],
-            ['id' => 5, 'name' => 'Ortopedia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças do aparelho locomotor']
+            ['id' => 1, 'name' => 'Cardiologia', 'slug' => 'cardiologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças cardiovasculares'],
+            ['id' => 2, 'name' => 'Dermatologia', 'slug' => 'dermatologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças de pele'],
+            ['id' => 3, 'name' => 'Neurologia', 'slug' => 'neurologia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças do sistema nervoso'],
+            ['id' => 4, 'name' => 'Pediatria', 'slug' => 'pediatria', 'description' => 'Especialidade médica que se dedica ao cuidado da saúde de crianças e adolescentes'],
+            ['id' => 5, 'name' => 'Ortopedia', 'slug' => 'ortopedia', 'description' => 'Especialidade médica que se dedica ao diagnóstico e tratamento das doenças do aparelho locomotor']
         ];
 
         foreach ($specialties as $specialty) {
             DB::table('specialties')->updateOrInsert(
                 ['id' => $specialty['id']],
-                $specialty
+                array_merge($specialty, [
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ])
             );
         }
 
