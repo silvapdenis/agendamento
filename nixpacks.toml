@@ -1,16 +1,13 @@
 [phases.setup]
 nixPkgs = ['php82', 'php82Packages.composer', 'nodejs_18']
 
-[variables]
-PHP_PATH = '/nix/store/*/bin/php'
+
 
 [phases.install]
 cmds = [
   # Create storage directories
   'mkdir -p storage/app storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache',
   'chmod -R 755 storage bootstrap/cache',
-  # Create .env from example
-  'cp .env.example .env',
   # Install dependencies without running post-install scripts
   'composer install --no-dev --optimize-autoloader --no-interaction --no-scripts',
   'npm install'
@@ -20,34 +17,24 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
+  # Create proper .env file
+  'cp .env.example .env',
   # Install dev dependencies needed for build
   'npm install --include=dev',
   # Build assets
   'npm run build',
   # Clean up dev dependencies after build
-  'npm prune --production'
+  'npm prune --production',
+  # Generate Laravel key if not provided
+  'php artisan key:generate --force || echo "Key generation failed"'
 ]
 
 [start]
-cmd = '''
-# Setup environment variables
-echo "APP_KEY=$APP_KEY" > .env
-echo "APP_ENV=production" >> .env
-echo "APP_DEBUG=true" >> .env
-echo "APP_URL=$RAILWAY_STATIC_URL" >> .env
-echo "DB_CONNECTION=pgsql" >> .env
-echo "DB_HOST=$PGHOST" >> .env
-echo "DB_PORT=$PGPORT" >> .env
-echo "DB_DATABASE=$PGDATABASE" >> .env
-echo "DB_USERNAME=$PGUSER" >> .env
-echo "DB_PASSWORD=$PGPASSWORD" >> .env
-echo "WHATSAPP_VERIFY_TOKEN=medico_bot_2025" >> .env
+cmd = 'php -S 0.0.0.0:$PORT -t public'
 
-# Run Laravel setup
-php artisan config:cache 2>/dev/null || echo "Config cache failed"
-php artisan migrate --force --no-interaction 2>/dev/null || echo "Migration failed"
-php artisan route:cache 2>/dev/null || echo "Route cache failed"
-
-# Start server
-php -S 0.0.0.0:$PORT -t public
-'''
+[variables]
+APP_KEY = '$APP_KEY'
+APP_ENV = 'production'  
+APP_DEBUG = 'true'
+DB_CONNECTION = 'pgsql'
+WHATSAPP_VERIFY_TOKEN = 'medico_bot_2025'
