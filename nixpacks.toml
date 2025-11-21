@@ -29,8 +29,6 @@ cmds = [
 cmds = [
   # Ensure directories exist
   'chmod -R 755 storage bootstrap/cache',
-  # Use production environment file
-  'cp .env.production .env',
   # Install dev dependencies needed for build
   'npm install --include=dev',
   # Build assets
