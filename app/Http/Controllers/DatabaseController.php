@@ -38,42 +38,46 @@ class DatabaseController extends Controller
     public function test()
     {
         try {
-            // Testar conexão
-            DB::connection()->getPdo();
+            // Verificar variáveis de ambiente
+            $envVars = [
+                'DB_CONNECTION' => env('DB_CONNECTION'),
+                'DB_HOST' => env('DB_HOST'),
+                'DB_PORT' => env('DB_PORT'),
+                'DB_DATABASE' => env('DB_DATABASE'),
+                'DB_USERNAME' => env('DB_USERNAME'),
+                'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET'
+            ];
             
-            // Verificar tabelas
-            $tables = DB::select("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+            // Testar conexão MySQL
+            $pdo = DB::connection()->getPdo();
             
-            // Contar registros em algumas tabelas principais
-            $counts = [];
-            $mainTables = ['users', 'doctors', 'clinics', 'specialties', 'appointments'];
+            // Verificar tabelas MySQL
+            $tables = DB::select("SHOW TABLES");
             
-            foreach ($mainTables as $table) {
-                try {
-                    $counts[$table] = DB::table($table)->count();
-                } catch (Exception $e) {
-                    $counts[$table] = 'Tabela não existe';
-                }
-            }
+            // Testar query simples
+            $result = DB::select('SELECT 1 as test_connection');
             
             return response()->json([
                 'success' => true,
-                'message' => 'Conexão com banco estabelecida',
-                'database' => config('database.connections.pgsql.database'),
-                'host' => config('database.connections.pgsql.host'),
+                'message' => 'Conexão MySQL funcionando!',
+                'env_vars' => $envVars,
+                'pdo_driver' => $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME),
+                'database' => env('DB_DATABASE'),
+                'host' => env('DB_HOST'),
                 'tables_count' => count($tables),
-                'tables' => array_map(function($t) { return $t->tablename; }, $tables),
-                'record_counts' => $counts
+                'test_query' => $result[0]->test_connection ?? 'failed'
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro na conexão: ' . $e->getMessage(),
-                'database_config' => [
-                    'host' => config('database.connections.pgsql.host'),
-                    'database' => config('database.connections.pgsql.database'),
-                    'username' => config('database.connections.pgsql.username'),
-                    'port' => config('database.connections.pgsql.port')
+                'message' => 'Erro na conexão MySQL: ' . $e->getMessage(),
+                'env_vars' => [
+                    'DB_CONNECTION' => env('DB_CONNECTION'),
+                    'DB_HOST' => env('DB_HOST'),
+                    'DB_PORT' => env('DB_PORT'),
+                    'DB_DATABASE' => env('DB_DATABASE'),
+                    'DB_USERNAME' => env('DB_USERNAME'),
+                    'DB_PASSWORD' => env('DB_PASSWORD') ? 'SET' : 'NOT SET'
                 ]
             ], 500);
         }
