@@ -3,6 +3,7 @@ FROM n8nio/n8n:1.21.1
 
 # Set environment variables directly
 ENV N8N_HOST=0.0.0.0
+ENV N8N_PORT=5678
 ENV N8N_BASIC_AUTH_ACTIVE=true
 ENV N8N_BASIC_AUTH_USER=admin  
 ENV N8N_BASIC_AUTH_PASSWORD=medico_bot_2025
@@ -24,5 +25,5 @@ WORKDIR /home/node
 # Expose port
 EXPOSE 5678
 
-# Start n8n directly with port from environment
-CMD ["sh", "-c", "N8N_PORT=${PORT:-5678} n8n start"]
+# Start n8n directly 
+CMD ["n8n", "start"]
