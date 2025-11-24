@@ -8,20 +8,22 @@ cmds = [
 
 [phases.build]
 cmds = [
-  'mkdir -p ~/.n8n',
+  'mkdir -p /tmp/.n8n',
+  'echo "N8N_HOST=0.0.0.0" > /tmp/.n8n.env',
   'echo "N8N build phase completed"'
 ]
 
 [start]
-cmd = 'n8n start --host=0.0.0.0 --port=$PORT'
+cmd = 'N8N_HOST=0.0.0.0 N8N_PORT=$PORT n8n start'
 
 [variables]
-# Basic Configuration
+# Basic Configuration - Railway specific
 N8N_HOST = '0.0.0.0'
 N8N_PORT = '$PORT'
 N8N_PROTOCOL = 'https'
 N8N_EDITOR_BASE_URL = 'https://$RAILWAY_STATIC_URL'
 WEBHOOK_URL = 'https://$RAILWAY_STATIC_URL/webhook'
+PORT = '$PORT'
 
 # Disable database for now (use file system)
 # Database will be configured later
