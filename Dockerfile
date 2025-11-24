@@ -22,14 +22,12 @@ WORKDIR /app
 # Install n8n globally
 RUN npm install -g n8n@1.21.1
 
-# Create n8n user and directory
-RUN addgroup -g 1000 n8n && \
-    adduser -D -s /bin/sh -u 1000 -G n8n n8n && \
-    mkdir -p /home/n8n/.n8n && \
-    chown -R n8n:n8n /home/n8n
+# Create n8n user and directory (using existing node user)
+RUN mkdir -p /home/node/.n8n && \
+    chown -R node:node /home/node/.n8n
 
-# Switch to n8n user
-USER n8n
+# Switch to node user
+USER node
 
 # Set environment variables
 ENV N8N_HOST=0.0.0.0
@@ -37,11 +35,11 @@ ENV N8N_PORT=5678
 ENV N8N_BASIC_AUTH_ACTIVE=true
 ENV N8N_BASIC_AUTH_USER=admin
 ENV N8N_BASIC_AUTH_PASSWORD=medico_bot_2025
-ENV N8N_USER_FOLDER=/home/n8n/.n8n
+ENV N8N_USER_FOLDER=/home/node/.n8n
 ENV N8N_ENCRYPTION_KEY=railway-custom-key
 
 # Set working directory
-WORKDIR /home/n8n
+WORKDIR /home/node
 
 # Expose port
 EXPOSE 5678
