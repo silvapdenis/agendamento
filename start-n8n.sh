@@ -1,12 +1,16 @@
-#!/bin/bash
+#!/bin/sh
 
-# N8N Initialization Script for Railway
+# Validate PORT environment variable and set N8N_PORT
+if [ -z "$PORT" ] || [ "$PORT" = "undefined" ]; then
+  export N8N_PORT=5678
+  echo "PORT not defined or invalid, using default port 5678"
+else
+  export N8N_PORT=$PORT
+  echo "Using PORT from environment: $N8N_PORT"
+fi
 
-echo "🚀 Starting N8N for Medical Appointment System..."
-
-# Create n8n directory
-mkdir -p /tmp/.n8n
-export N8N_USER_FOLDER=/tmp/.n8n
+echo "Starting n8n on port $N8N_PORT"
+exec n8n start
 
 # Set environment variables
 export N8N_HOST=0.0.0.0
