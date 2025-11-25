@@ -39,15 +39,15 @@ ENV N8N_USER_FOLDER=/home/node/.n8n
 ENV N8N_ENCRYPTION_KEY=railway-custom-key
 
 # Create a startup script to handle port validation
-RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'if [ -z "$PORT" ] || [ "$PORT" = "undefined" ]; then' >> /start.sh && \
-    echo '  export N8N_PORT=5678' >> /start.sh && \
-    echo 'else' >> /start.sh && \
-    echo '  export N8N_PORT=$PORT' >> /start.sh && \
-    echo 'fi' >> /start.sh && \
-    echo 'echo "Starting n8n on port $N8N_PORT"' >> /start.sh && \
-    echo 'exec n8n start' >> /start.sh && \
-    chmod +x /start.sh
+RUN echo '#!/bin/sh' > /usr/local/bin/start.sh && \
+    echo 'if [ -z "$PORT" ] || [ "$PORT" = "undefined" ]; then' >> /usr/local/bin/start.sh && \
+    echo '  export N8N_PORT=5678' >> /usr/local/bin/start.sh && \
+    echo 'else' >> /usr/local/bin/start.sh && \
+    echo '  export N8N_PORT=$PORT' >> /usr/local/bin/start.sh && \
+    echo 'fi' >> /usr/local/bin/start.sh && \
+    echo 'echo "Starting n8n on port $N8N_PORT"' >> /usr/local/bin/start.sh && \
+    echo 'exec n8n start' >> /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start.sh
 
 # Set working directory
 WORKDIR /home/node
@@ -56,4 +56,4 @@ WORKDIR /home/node
 EXPOSE 5678
 
 # Start n8n with port validation
-CMD ["/start.sh"]
+CMD ["/usr/local/bin/start.sh"]
