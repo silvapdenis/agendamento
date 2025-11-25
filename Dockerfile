@@ -26,6 +26,11 @@ RUN npm install -g n8n@1.21.1
 RUN mkdir -p /home/node/.n8n && \
     chown -R node:node /home/node/.n8n
 
+# Copy and set up startup script (as root before switching users)
+COPY start-n8n.sh /home/node/start-n8n.sh
+RUN chmod +x /home/node/start-n8n.sh && \
+    chown node:node /home/node/start-n8n.sh
+
 # Switch to node user
 USER node
 
@@ -38,10 +43,6 @@ ENV N8N_BASIC_AUTH_PASSWORD=medico_bot_2025
 ENV N8N_USER_FOLDER=/home/node/.n8n
 ENV N8N_ENCRYPTION_KEY=railway-custom-key
 
-# Copy and set up startup script
-COPY start-n8n.sh /usr/local/bin/start-n8n.sh
-RUN chmod +x /usr/local/bin/start-n8n.sh
-
 # Set working directory
 WORKDIR /home/node
 
@@ -49,4 +50,4 @@ WORKDIR /home/node
 EXPOSE 5678
 
 # Start n8n with port validation
-CMD ["/usr/local/bin/start-n8n.sh"]
+CMD ["/home/node/start-n8n.sh"]
