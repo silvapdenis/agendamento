@@ -38,11 +38,22 @@ ENV N8N_BASIC_AUTH_PASSWORD=medico_bot_2025
 ENV N8N_USER_FOLDER=/home/node/.n8n
 ENV N8N_ENCRYPTION_KEY=railway-custom-key
 
+# Create a startup script to handle port validation
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'if [ -z "$PORT" ] || [ "$PORT" = "undefined" ]; then' >> /start.sh && \
+    echo '  export N8N_PORT=5678' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  export N8N_PORT=$PORT' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'echo "Starting n8n on port $N8N_PORT"' >> /start.sh && \
+    echo 'exec n8n start' >> /start.sh && \
+    chmod +x /start.sh
+
 # Set working directory
 WORKDIR /home/node
 
 # Expose port
 EXPOSE 5678
 
-# Start n8n
-CMD ["n8n", "start"]
+# Start n8n with port validation
+CMD ["/start.sh"]
