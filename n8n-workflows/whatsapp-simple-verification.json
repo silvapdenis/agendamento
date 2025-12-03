@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// WhatsApp webhook verification\nconst params = $input.item.json.query || {};\nconst mode = params['hub.mode'];\nconst token = params['hub.verify_token'];\nconst challenge = params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  return { challenge: challenge };\n} else {\n  throw new Error('Invalid verification token');\n}"
+        "jsCode": "// WhatsApp webhook verification\nconst params = $input.item.json.query || {};\nconst mode = params['hub.mode'];\nconst token = params['hub.verify_token'];\nconst challenge = params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  // Return challenge as plain number for response\n  return [{ json: { responseBody: challenge, responseCode: 200 } }];\n} else {\n  throw new Error('Invalid verification token');\n}"
       },
       "id": "code-node",
       "name": "Verify Token",
@@ -27,14 +27,10 @@
     },
     {
       "parameters": {
-        "respondWith": "noData",
-        "responseCode": "={{ 200 }}",
-        "responseBody": "={{ $json.challenge }}",
-        "options": {
-          "responseHeaders": {
-            "entries": []
-          }
-        }
+        "respondWith": "text",
+        "responseCode": 200,
+        "responseBody": "={{ $json.responseBody }}",
+        "options": {}
       },
       "id": "respond-node",
       "name": "Respond to Webhook",
