@@ -1,0 +1,112 @@
+{
+  "name": "WhatsApp Webhook Verification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "webhook-whatsapp",
+        "options": {}
+      },
+      "id": "webhook-get-node",
+      "name": "Webhook GET",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "whatsapp-verify"
+    },
+    {
+      "parameters": {
+        "jsCode": "// WhatsApp webhook verification\nconst mode = $input.params['hub.mode'];\nconst token = $input.params['hub.verify_token'];\nconst challenge = $input.params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  return { challenge: parseInt(challenge) };\n} else {\n  throw new Error('Invalid verification token');\n}"
+      },
+      "id": "code-node",
+      "name": "Verify Token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {}
+      },
+      "id": "respond-node",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-whatsapp",
+        "options": {}
+      },
+      "id": "webhook-post-node",
+      "name": "Webhook POST",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 500],
+      "webhookId": "whatsapp-messages"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract WhatsApp message data\nconst body = $input.item.json.body;\n\nif (!body || !body.entry || !body.entry[0]) {\n  return { status: 'no_data' };\n}\n\nconst entry = body.entry[0];\nif (!entry.changes || !entry.changes[0]) {\n  return { status: 'no_changes' };\n}\n\nconst change = entry.changes[0];\nif (!change.value || !change.value.messages || !change.value.messages[0]) {\n  return { status: 'no_messages' };\n}\n\nconst message = change.value.messages[0];\nconst phone = message.from;\nconst text = message.text ? message.text.body : '';\n\nreturn {\n  phone: phone,\n  message: text,\n  messageId: message.id,\n  timestamp: message.timestamp\n};"
+      },
+      "id": "extract-node",
+      "name": "Extract Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://web-production-317fb.up.railway.app/api/n8n/conversation-state",
+        "options": {}
+      },
+      "id": "get-state-node",
+      "name": "Get Conversation State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"received\" }",
+        "options": {}
+      },
+      "id": "respond-post-node",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 500]
+    }
+  ],
+  "connections": {
+    "Webhook GET": {
+      "main": [[{ "node": "Verify Token", "type": "main", "index": 0 }]]
+    },
+    "Verify Token": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    },
+    "Webhook POST": {
+      "main": [[{ "node": "Extract Message", "type": "main", "index": 0 }]]
+    },
+    "Extract Message": {
+      "main": [[{ "node": "Get Conversation State", "type": "main", "index": 0 }]]
+    },
+    "Get Conversation State": {
+      "main": [[{ "node": "Respond 200 OK", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-03T17:00:00.000Z",
+  "versionId": "1"
+}
