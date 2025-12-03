@@ -28,7 +28,17 @@
       "parameters": {
         "respondWith": "text",
         "responseBody": "={{ $json.challenge }}",
-        "options": {}
+        "responseCode": 200,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        }
       },
       "id": "respond-node",
       "name": "Respond to Webhook",
