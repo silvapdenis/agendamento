@@ -45,6 +45,9 @@ ENV N8N_BASIC_AUTH_USER=admin
 ENV N8N_BASIC_AUTH_PASSWORD=medico_bot_2025
 ENV N8N_USER_FOLDER=/home/node/.n8n
 ENV N8N_ENCRYPTION_KEY=railway-custom-key
+ENV DB_TYPE=sqlite
+ENV N8N_DIAGNOSTICS_ENABLED=false
+ENV N8N_LOG_LEVEL=info
 
 # Set working directory
 WORKDIR /home/node
