@@ -19,8 +19,8 @@ fi
 # Configure n8n to work behind Railway proxy
 export N8N_HOST=0.0.0.0
 export N8N_PROTOCOL=https
-export N8N_EDITOR_BASE_URL=https://n8n-production-9ab7.up.railway.app
-export WEBHOOK_URL=https://n8n-production-9ab7.up.railway.app/
+export N8N_EDITOR_BASE_URL=https://n8n-production-cbb3.up.railway.app
+export WEBHOOK_URL=https://n8n-production-cbb3.up.railway.app/
 export DB_TYPE=sqlite
 export N8N_LOG_LEVEL=debug
 export N8N_LOG_OUTPUT=console
