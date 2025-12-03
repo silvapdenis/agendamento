@@ -5,6 +5,7 @@
       "parameters": {
         "httpMethod": "GET",
         "path": "webhook-whatsapp",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "webhook-get-node",
@@ -50,6 +51,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "webhook-whatsapp",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "webhook-post-node",
