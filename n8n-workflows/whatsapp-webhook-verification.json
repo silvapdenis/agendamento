@@ -1,0 +1,634 @@
+{
+  "name": "WhatsApp Medical Appointment Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "webhook-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b4c5236c-9d7f-4aac-b1d5-e94a3a55ba4b",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        -48
+      ],
+      "webhookId": "whatsapp-medical-bot"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "339007f3-198c-4d1a-b7c4-f489bd80d5d0",
+      "name": "WhatsApp Webhook POST",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        48
+      ],
+      "webhookId": "whatsapp-medical-post"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "id": "verification-check"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a23889c-c926-41d9-bd60-f040f6b982dc",
+      "name": "Is Verification Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "medico_bot_2025",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "id": "token-check"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9e88b412-89a8-4583-aa46-0a639b2b22ec",
+      "name": "Verify Token",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "ee660efb-f7d0-4cab-a186-077a39b4edaf",
+      "name": "Respond Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.messages.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "id": "eb6414aa-54d2-4a45-9dc0-a2cf83051030"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "94706fa7-62f7-4ce0-996b-dd8a29e50d9a",
+      "name": "Check Message Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const entry = $input.all()[0].json.body.entry[0];\nconst changes = entry.changes[0];\nconst messages = changes.value.messages;\n\nif (messages && messages.length > 0) {\n  const message = messages[0];\n  return {\n    phone: message.from,\n    messageText: message.text?.body || '',\n    messageType: message.type,\n    messageId: message.id,\n    timestamp: message.timestamp\n  };\n}\n\nreturn {\n  phone: null,\n  messageText: '',\n  messageType: '',\n  messageId: '',\n  timestamp: ''\n};"
+      },
+      "id": "def14aea-40dc-40c3-a5f0-8196c2dfe77c",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.messageType }}",
+              "rightValue": "text",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "308bfe0f-2efa-4f3a-a628-fd74699b2c1a",
+      "name": "Check Text Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://web-production-317fb.up.railway.app/api/n8n/conversation-state",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "93d6a64b-8211-41f4-98d3-06ae467a83fb",
+      "name": "Get Conversation State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -736,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "initial",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ec6cd9b0-e491-49b4-a76f-ca11daea7264",
+      "name": "Check Initial State",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if message contains appointment keywords\nconst messageText = $('Extract Message Data').first().json.messageText.toLowerCase();\nconst appointmentKeywords = ['agendar', 'consulta', 'médico', 'doutor', 'horário', 'marcar'];\n\nconst isAppointmentRequest = appointmentKeywords.some(keyword => \n  messageText.includes(keyword)\n);\n\nreturn [{\n  isAppointmentRequest,\n  messageText,\n  phoneNumber: $('Extract Message Data').first().json.phoneNumber\n}];"
+      },
+      "id": "d52a07b8-1412-4f95-bbef-1094e545512e",
+      "name": "Detect Appointment Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://web-production-317fb.up.railway.app/api/n8n/specialties",
+        "options": {}
+      },
+      "id": "280b6ed0-f939-4571-b9ca-dd05f7dec7e2",
+      "name": "Get Specialties",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format specialties list message\nconst specialties = $json.data;\nconst phone = $('Extract Message Data').first().json.phone;\n\nlet message = \"AGENDAMENTO DE CONSULTA\\n\\n\";\nmessage += \"Para agendar sua consulta, preciso de algumas informacoes.\\n\\n\";\nmessage += \"Especialidades disponiveis:\\n\";\n\nspecialties.forEach((specialty, index) => {\n  message += `${index + 1}. ${specialty.name}\\n`;\n});\n\nmessage += \"\\nDigite o NUMERO da especialidade desejada:\";\n\nreturn [{\n  phone,\n  message,\n  specialties,\n  nextState: 'waiting_specialty'\n}];"
+      },
+      "id": "f6f0cce5-52d8-4105-a95d-8221212cb968",
+      "name": "Format Specialties Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://web-production-317fb.up.railway.app/api/n8n/send-whatsapp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $('Extract Message Data').first().json.phone }}"
+            },
+            {
+              "name": "message",
+              "value": "{{ $json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3f23bd5-8863-461f-a76a-24345d04724f",
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://web-production-317fb.up.railway.app/api/n8n/conversation-state",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $('Extract Message Data').first().json.phone }}"
+            },
+            {
+              "name": "state",
+              "value": "waiting_specialty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "429a3df7-c303-4ea7-8248-62923be55d57",
+      "name": "Update Conversation State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"success\" }",
+        "options": {}
+      },
+      "id": "b7257361-87bd-4ec9-aed0-f6e14054f42a",
+      "name": "Response Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        816,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Show welcome message\nconst phoneNumber = $('Extract Message Data').first().json.phoneNumber;\n\nconst message = \"👋 Olá! Bem-vindo ao sistema de agendamento!\\n\\n\" +\n               \"🏥 Eu posso ajudá-lo a:\\n\" +\n               \"• Agendar consultas médicas\\n\" +\n               \"• Verificar horários disponíveis\\n\" +\n               \"• Confirmar agendamentos\\n\\n\" +\n               \"Para começar, digite:\\n\" +\n               \"*agendar consulta*\";\n\nreturn [{\n  phoneNumber,\n  message,\n  nextState: 'initial'\n}];"
+      },
+      "id": "e460eb2b-c46a-4a32-bbbf-48ade20e112f",
+      "name": "Welcome Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"error\", \"message\": \"Not a text message\" }",
+        "options": {}
+      },
+      "id": "62db46be-60c3-44e3-8d73-ed030bb8d348",
+      "name": "Response Not Text",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"error\", \"message\": \"No message found\" }",
+        "options": {}
+      },
+      "id": "328f5d02-b406-44f4-85c8-eeeaeb567450",
+      "name": "Response No Message",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Verification Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Webhook POST": {
+      "main": [
+        [
+          {
+            "node": "Check Message Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verification Request?": {
+      "main": [
+        [
+          {
+            "node": "Verify Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Message Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Token": {
+      "main": [
+        [
+          {
+            "node": "Respond Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Message Exists": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response No Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Check Text Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Text Message": {
+      "main": [
+        [
+          {
+            "node": "Get Conversation State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Response Not Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Conversation State": {
+      "main": [
+        [
+          {
+            "node": "Check Initial State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Initial State": {
+      "main": [
+        [
+          {
+            "node": "Detect Appointment Intent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Appointment Intent": {
+      "main": [
+        [
+          {
+            "node": "Get Specialties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Specialties": {
+      "main": [
+        [
+          {
+            "node": "Format Specialties Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Specialties Message": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Update Conversation State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Conversation State": {
+      "main": [
+        [
+          {
+            "node": "Response Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome Message": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0831e84c-2f1c-4028-9a94-39629b7545f1",
+  "meta": {
+    "instanceId": "9a2fd73cce89c70df0949d33387b5fe48501bfef199da3a0bddc86616f049c7e"
+  },
+  "id": "vQSZocQaPn9ortif",
+  "tags": []
+}
