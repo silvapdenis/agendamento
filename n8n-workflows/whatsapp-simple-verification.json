@@ -16,7 +16,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// WhatsApp webhook verification\nconst mode = $input.params['hub.mode'];\nconst token = $input.params['hub.verify_token'];\nconst challenge = $input.params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  return { challenge: parseInt(challenge) };\n} else {\n  throw new Error('Invalid verification token');\n}"
+        "jsCode": "// WhatsApp webhook verification\nconst params = $input.item.json.query || {};\nconst mode = params['hub.mode'];\nconst token = params['hub.verify_token'];\nconst challenge = params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  return { challenge: challenge };\n} else {\n  throw new Error('Invalid verification token');\n}"
       },
       "id": "code-node",
       "name": "Verify Token",
