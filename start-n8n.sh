@@ -46,5 +46,32 @@ else
 fi
 
 echo "Starting n8n process..."
-# Start n8n directly
-exec n8n start
+
+# Start n8n in background
+n8n start &
+N8N_PID=$!
+
+# Wait for n8n to be ready
+echo "Waiting for n8n to respond on port $N8N_PORT..."
+MAX_WAIT=60
+WAITED=0
+
+while [ $WAITED -lt $MAX_WAIT ]; do
+    if curl -f http://localhost:$N8N_PORT/ > /dev/null 2>&1; then
+        echo "✓ n8n is responding on port $N8N_PORT!"
+        break
+    fi
+    sleep 2
+    WAITED=$((WAITED + 2))
+    echo "Waited ${WAITED}s for n8n..."
+done
+
+if [ $WAITED -ge $MAX_WAIT ]; then
+    echo "✗ n8n did not become ready in time"
+    exit 1
+fi
+
+echo "✓ n8n startup complete, container is ready"
+
+# Keep container alive
+wait $N8N_PID
