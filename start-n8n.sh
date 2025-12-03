@@ -1,5 +1,12 @@
 #!/bin/sh
 
+echo "==================================="
+echo "DEBUG: Environment Variables"
+echo "==================================="
+echo "PORT: $PORT"
+echo "RAILWAY_ENVIRONMENT: $RAILWAY_ENVIRONMENT"
+echo "RAILWAY_STATIC_URL: $RAILWAY_STATIC_URL"
+
 # Validate PORT environment variable and set N8N_PORT
 if [ -z "$PORT" ] || [ "$PORT" = "undefined" ]; then
   export N8N_PORT=5678
@@ -15,6 +22,8 @@ export N8N_PROTOCOL=https
 export N8N_EDITOR_BASE_URL=https://n8n-production-9ab7.up.railway.app
 export WEBHOOK_URL=https://n8n-production-9ab7.up.railway.app/
 export DB_TYPE=sqlite
+export N8N_LOG_LEVEL=debug
+export N8N_LOG_OUTPUT=console
 
 echo "==================================="
 echo "Starting n8n on port $N8N_PORT"
@@ -24,5 +33,18 @@ echo "N8N_EDITOR_BASE_URL: $N8N_EDITOR_BASE_URL"
 echo "DB_TYPE: $DB_TYPE"
 echo "==================================="
 
+# Test if we can bind to the port
+echo "Testing port binding..."
+nc -l -p $N8N_PORT &
+NC_PID=$!
+sleep 1
+if kill -0 $NC_PID 2>/dev/null; then
+    echo "✓ Port $N8N_PORT is available"
+    kill $NC_PID 2>/dev/null
+else
+    echo "✗ Cannot bind to port $N8N_PORT"
+fi
+
+echo "Starting n8n process..."
 # Start n8n directly
 exec n8n start
