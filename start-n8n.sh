@@ -24,21 +24,5 @@ echo "N8N_EDITOR_BASE_URL: $N8N_EDITOR_BASE_URL"
 echo "DB_TYPE: $DB_TYPE"
 echo "==================================="
 
-# Start n8n in the background
-n8n start &
-N8N_PID=$!
-
-# Wait for n8n to be ready
-echo "Waiting for n8n to start..."
-sleep 5
-
-# Check if n8n process is still running
-if ! kill -0 $N8N_PID 2>/dev/null; then
-    echo "ERROR: n8n failed to start!"
-    exit 1
-fi
-
-echo "n8n started successfully with PID $N8N_PID"
-
-# Keep the container running
-wait $N8N_PID
+# Start n8n directly
+exec n8n start
