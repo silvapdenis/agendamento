@@ -5,8 +5,7 @@
       "parameters": {
         "httpMethod": "GET",
         "path": "webhook-whatsapp",
-        "responseMode": "onReceived",
-        "responseData": "={{ $json.challenge }}",
+        "responseMode": "responseNode",
         "options": {}
       },
       "id": "webhook-get-node",
@@ -18,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// WhatsApp webhook verification\nconst params = $input.item.json.query || {};\nconst mode = params['hub.mode'];\nconst token = params['hub.verify_token'];\nconst challenge = params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  // Return just the challenge value as string\n  $response.status(200).type('text/plain').send(challenge);\n  return { challenge: challenge };\n} else {\n  throw new Error('Invalid verification token');\n}"
+        "jsCode": "// WhatsApp webhook verification\nconst params = $input.item.json.query || {};\nconst mode = params['hub.mode'];\nconst token = params['hub.verify_token'];\nconst challenge = params['hub.challenge'];\n\n// Verify token\nif (mode === 'subscribe' && token === 'medico_bot_2025') {\n  return { challenge: challenge };\n} else {\n  throw new Error('Invalid verification token');\n}"
       },
       "id": "code-node",
       "name": "Verify Token",
@@ -28,17 +27,12 @@
     },
     {
       "parameters": {
-        "respondWith": "text",
+        "respondWith": "noData",
+        "responseCode": "={{ 200 }}",
         "responseBody": "={{ $json.challenge }}",
-        "responseCode": 200,
         "options": {
           "responseHeaders": {
-            "entries": [
-              {
-                "name": "Content-Type",
-                "value": "text/plain"
-              }
-            ]
+            "entries": []
           }
         }
       },
@@ -99,6 +93,9 @@
   "connections": {
     "Webhook GET": {
       "main": [[{ "node": "Verify Token", "type": "main", "index": 0 }]]
+    },
+    "Verify Token": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
     },
     "Webhook POST": {
       "main": [[{ "node": "Extract Message", "type": "main", "index": 0 }]]
